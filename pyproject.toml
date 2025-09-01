@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mathstepsolver"
+version = "0.1.0"
+description = "Resuelve problemas matemáticos mostrando todos los pasos intermedios"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Tu Nombre", email = "tu@email.com"}
+]
+keywords = ["math", "calculus", "integrals", "derivatives", "equations", "education"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Mathematics"
+]
+
+[project.urls]
+Homepage = "https://github.com/tuusuario/mathstepsolver"
+
+[project.scripts]
+mathstepsolver = "mathstepsolver.cli:main"
