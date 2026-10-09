@@ -1,0 +1,77 @@
+def render_latex(steps, problem_type='expression'):
+    """
+    Renderiza pasos en formato LaTeX.
+    """
+    if problem_type == 'integral':
+        return render_integral_latex(steps)
+    
+    explanations = render_steps(steps, problem_type)
+    latex_output = []
+    
+    for explanation in explanations:
+        # Solo convertir partes que parezcan expresiones matemáticas
+        if any(op in explanation for op in ['+', '-', '*', '/', '^', '=', '∫', '∂']):
+            try:
+                # Extraer la expresión matemática
+                math_part = explanation.split(':')[-1].strip()
+                math_expr = sympify(math_part)
+                latex_math = latex(math_expr)
+                latex_output.append(explanation.replace(math_part, f"${latex_math}$"))
+            except:
+                latex_output.append(explanation)
+        else:
+            latex_output.append(explanation)
+    
+    return latex_output
+
+def render_integral_latex(steps, nivel=0):
+    """
+    Renderiza pasos de integrales en formato LaTeX.
+    """
+    explicaciones = []
+    sangria = "  " * nivel
+    
+    if isinstance(steps, str):
+        return [f"{sangria}{steps}"]
+    
+    if hasattr(steps, 'rule'):
+        regla = steps.rule.__name__ if hasattr(steps, 'rule') else 'Desconocida'
+        
+        if regla == 'PowerRule':
+            base = getattr(steps, 'base', 'x')
+            exp = getattr(steps, 'exp', '1')
+            base_sym = sympify(base)
+            exp_sym = sympify(exp)
+            
+            explicaciones.append(f"{sangria}Aplicar regla de la potencia:")
+            explicaciones.append(f"{sangria}  $\\int {latex(base_sym)}^{{{latex(exp_sym)}}}  dx = \\frac{{{latex(base_sym)}^{{{latex(exp_sym+1)}}}}}{{{latex(exp_sym+1)}}} + C$")
+        
+        elif regla == 'IntegrationByParts':
+            u = getattr(steps, 'u', 'u')
+            dv = getattr(steps, 'dv', 'dv')
+            u_sym = sympify(u)
+            dv_sym = sympify(dv)
+            
+            explicaciones.append(f"{sangria}Aplicar integración por partes:")
+            explicaciones.append(f"{sangria}  $u = {latex(u_sym)},  dv = {latex(dv_sym)}  dx$")
+            explicaciones.append(f"{sangria}  $\\int u  dv = uv - \\int v  du$")
+            
+            if hasattr(steps, 'v_step'):
+                explicaciones.append(f"{sangria}Calcular $v = \\int dv$:")
+                explicaciones.extend(render_integral_latex(steps.v_step, nivel + 1))
+                
+            if hasattr(steps, 'second_step'):
+                explicaciones.append(f"{sangria}Calcular la nueva integral $\\int v  du$:")
+                explicaciones.extend(render_integral_latex(steps.second_step, nivel + 1))
+        
+        else:
+            explicaciones.append(f"{sangria}Regla aplicada: {regla}")
+    
+    elif hasattr(steps, 'substeps'):
+        for substep in steps.substeps:
+            explicaciones.extend(render_integral_latex(substep, nivel))
+    
+    else:
+        explicaciones.append(f"{sangria}{str(steps)}")
+    
+    return explicaciones
